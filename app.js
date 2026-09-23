@@ -57,9 +57,19 @@ const state = {
 
 function buildSlide(slide) {
   return `
-    <img class="slide-image" src="${slide.image}" alt="${slide.title}" />
-    <h2 class="slide-title">${slide.title}</h2>
-    <p class="slide-text">${slide.text}</p>
+    <img
+      class="slide-image"
+      src="${slide.image}"
+      alt="${slide.title}"
+    />
+
+    <h2 class="slide-title">
+      ${slide.title}
+    </h2>
+
+    <p class="slide-text">
+      ${slide.text}
+    </p>
   `;
 }
 
@@ -68,125 +78,306 @@ function getNextIndex() {
 }
 
 function renderSlides() {
-  currentEl.innerHTML = buildSlide(slides[state.currentIndex]);
-  nextEl.innerHTML = buildSlide(slides[getNextIndex()]);
+  currentEl.innerHTML = buildSlide(
+    slides[state.currentIndex]
+  );
+
+  nextEl.innerHTML = buildSlide(
+    slides[getNextIndex()]
+  );
+
   applyWheelProgress(0);
 }
 
 function refreshDragDistance() {
   const rect = viewer.getBoundingClientRect();
-  state.maxDrag = Math.max(90, rect.height * 0.20);
+
+  state.maxDrag = Math.max(
+    90,
+    rect.height * 0.20
+  );
 }
 
 function applyWheelProgress(progress) {
-  state.progress = Math.max(0, Math.min(1, progress));
 
-  // Las dos diapositivas recorren el mismo arco de una rueda imaginaria.
-  // El gran radio está definido por transform-origin en CSS.
-  const currentAngle = WHEEL_STEP_DEG * state.progress;
-  const nextAngle = -WHEEL_STEP_DEG + WHEEL_STEP_DEG * state.progress;
+  state.progress = Math.max(
+    0,
+    Math.min(1, progress)
+  );
 
-  currentEl.style.transform = `rotate(${currentAngle}deg)`;
-  nextEl.style.transform = `rotate(${nextAngle}deg)`;
+  /*
+    MOBILE:
+    el texto de la siguiente diapositiva
+    no aparece inmediatamente.
 
-  // La palanca YA NO se traslada verticalmente:
-  // rota alrededor de un punto de anclaje desplazado hacia la izquierda.
-  const leverAngle = LEVER_MAX_DEG * state.progress;
-  lever.style.transform = `rotate(${leverAngle}deg)`;
+    Empieza a revelarse aproximadamente
+    desde el 48% del recorrido.
+  */
+
+  const nextCopyOpacity = Math.max(
+    0,
+    Math.min(
+      1,
+      (state.progress - 0.48) / 0.30
+    )
+  );
+
+  viewer.style.setProperty(
+    '--next-copy-opacity',
+    nextCopyOpacity.toFixed(3)
+  );
+
+
+  /*
+    GIRO DEL DISCO
+
+    Las dos diapositivas giran
+    sobre el mismo centro imaginario.
+  */
+
+  const currentAngle =
+    WHEEL_STEP_DEG * state.progress;
+
+  const nextAngle =
+    -WHEEL_STEP_DEG +
+    WHEEL_STEP_DEG * state.progress;
+
+
+  currentEl.style.transform =
+    `rotate(${currentAngle}deg)`;
+
+  nextEl.style.transform =
+    `rotate(${nextAngle}deg)`;
+
+
+  /*
+    PALANCA
+
+    La palanca gira alrededor
+    del punto de anclaje definido
+    mediante transform-origin en CSS.
+  */
+
+  const leverAngle =
+    LEVER_MAX_DEG * state.progress;
+
+  lever.style.transform =
+    `rotate(${leverAngle}deg)`;
 }
 
 function clearTransitions() {
+
   lever.style.transition = 'none';
+
   currentEl.style.transition = 'none';
+
   nextEl.style.transition = 'none';
 }
 
 function setReturnTransitions() {
-  lever.style.transition = 'transform 250ms cubic-bezier(.2,.75,.3,1)';
-  currentEl.style.transition = 'transform 250ms cubic-bezier(.2,.75,.3,1)';
-  nextEl.style.transition = 'transform 250ms cubic-bezier(.2,.75,.3,1)';
+
+  const easing =
+    '250ms cubic-bezier(.2,.75,.3,1)';
+
+  lever.style.transition =
+    `transform ${easing}`;
+
+  currentEl.style.transition =
+    `transform ${easing}`;
+
+  nextEl.style.transition =
+    `transform ${easing}`;
 }
 
 function setLeverReturnOnlyTransition() {
-  lever.style.transition = 'transform 250ms cubic-bezier(.2,.75,.3,1)';
+
+  lever.style.transition =
+    'transform 250ms cubic-bezier(.2,.75,.3,1)';
+
   currentEl.style.transition = 'none';
+
   nextEl.style.transition = 'none';
 }
 
 function resetWithoutCommit() {
+
   state.resetting = true;
+
   setReturnTransitions();
 
-  requestAnimationFrame(() => applyWheelProgress(0));
+  requestAnimationFrame(() => {
+
+    applyWheelProgress(0);
+
+  });
 
   window.setTimeout(() => {
+
     clearTransitions();
+
     state.resetting = false;
+
   }, 270);
 }
 
 function commitChange() {
-  state.committing = true;
-  state.currentIndex = getNextIndex();
 
-  // La nueva diapositiva ya quedó exactamente en posición central.
+  state.committing = true;
+
+  state.currentIndex =
+    getNextIndex();
+
+  /*
+    Renderizamos la nueva diapositiva
+    directamente en la posición central.
+  */
+
   renderSlides();
 
+  /*
+    La palanca vuelve sola arriba.
+  */
+
   setLeverReturnOnlyTransition();
-  lever.style.transform = 'rotate(0deg)';
+
+  lever.style.transform =
+    'rotate(0deg)';
+
   state.progress = 0;
 
+  viewer.style.setProperty(
+    '--next-copy-opacity',
+    '0'
+  );
+
   window.setTimeout(() => {
+
     clearTransitions();
+
     state.committing = false;
+
   }, 270);
 }
 
 function onPointerDown(event) {
-  if (state.resetting || state.committing) return;
+
+  if (
+    state.resetting ||
+    state.committing
+  ) {
+    return;
+  }
 
   state.dragging = true;
-  state.pointerId = event.pointerId;
-  state.startY = event.clientY - state.progress * state.maxDrag;
 
-  lever.setPointerCapture(event.pointerId);
+  state.pointerId =
+    event.pointerId;
+
+  state.startY =
+    event.clientY -
+    state.progress *
+    state.maxDrag;
+
+  lever.setPointerCapture(
+    event.pointerId
+  );
+
   clearTransitions();
+
   event.preventDefault();
 }
 
 function onPointerMove(event) {
-  if (!state.dragging || event.pointerId !== state.pointerId) return;
 
-  const deltaY = event.clientY - state.startY;
-  applyWheelProgress(deltaY / state.maxDrag);
+  if (
+    !state.dragging ||
+    event.pointerId !==
+    state.pointerId
+  ) {
+    return;
+  }
+
+  const deltaY =
+    event.clientY -
+    state.startY;
+
+  const progress =
+    deltaY /
+    state.maxDrag;
+
+  applyWheelProgress(progress);
 }
 
 function onPointerUp(event) {
-  if (!state.dragging || event.pointerId !== state.pointerId) return;
+
+  if (
+    !state.dragging ||
+    event.pointerId !==
+    state.pointerId
+  ) {
+    return;
+  }
 
   state.dragging = false;
 
   try {
-    lever.releasePointerCapture(event.pointerId);
+
+    lever.releasePointerCapture(
+      event.pointerId
+    );
+
   } catch (_) {}
 
+
+  /*
+    Solamente cambia la diapositiva
+    si se completó TODO el recorrido.
+  */
+
   if (state.progress >= 1) {
+
     commitChange();
+
   } else {
+
     resetWithoutCommit();
+
   }
 }
 
 function init() {
+
   refreshDragDistance();
+
   renderSlides();
+
   clearTransitions();
 
-  lever.addEventListener('pointerdown', onPointerDown);
-  window.addEventListener('pointermove', onPointerMove);
-  window.addEventListener('pointerup', onPointerUp);
-  window.addEventListener('pointercancel', onPointerUp);
-  window.addEventListener('resize', refreshDragDistance);
+
+  lever.addEventListener(
+    'pointerdown',
+    onPointerDown
+  );
+
+  window.addEventListener(
+    'pointermove',
+    onPointerMove
+  );
+
+  window.addEventListener(
+    'pointerup',
+    onPointerUp
+  );
+
+  window.addEventListener(
+    'pointercancel',
+    onPointerUp
+  );
+
+  window.addEventListener(
+    'resize',
+    refreshDragDistance
+  );
 }
 
 init();
