@@ -181,42 +181,67 @@ button {
   line-height: 1.4;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 680px) {
+
   :root {
-    --stage-width: min(96vw, 1620px);
-    --lever-right: -12.5%;
-    --lever-top: 18.8%;
-    --lever-width: 17.5%;
+    /*
+      En vertical necesitamos que el View Master sea más ancho
+      que la pantalla para no comprimir todo el contenido.
+    */
+    --stage-width: 142vw;
+
+    --image-left: 29%;
+    --image-top: 7.5%;
+    --image-width: 42%;
+
+    --title-left: 19.5%;
+    --title-top: 63.5%;
+    --title-width: 61%;
+
+    --body-left: 19.5%;
+    --body-top: 68.5%;
+    --body-width: 61%;
+
+    --lever-right: -11.8%;
+    --lever-top: 19.2%;
+    --lever-width: 16.8%;
   }
 
   .app {
-    padding: 1.5rem;
+    padding: 0;
+    overflow: hidden;
   }
-}
 
-@media (max-width: 680px) {
-  :root {
-    --stage-width: min(98vw, 1080px);
+  .viewer {
+    width: var(--stage-width);
+    max-width: none;
+    flex-shrink: 0;
+  }
 
-    --image-left: 28%;
-    --image-width: 44%;
+  /*
+    Evita que durante la rotación se vea el texto
+    de la próxima diapositiva por arriba del cuerpo.
+  */
+  .slides-viewport {
+    overflow: hidden;
 
-    --title-left: 17.5%;
-    --body-left: 17.5%;
-    --title-width: 65%;
-    --body-width: 65%;
-
-    --lever-right: -13.2%;
-    --lever-top: 18.4%;
-    --lever-width: 18%;
+    clip-path: inset(
+      5.2% 3.2% 5.2% 3.2%
+      round 7.5% / 6%
+    );
   }
 
   .slide-title {
-    font-size: clamp(7px, 0.9vw, 14px);
+    font-size: clamp(18px, 5vw, 23px);
+    line-height: 1.1;
   }
 
   .slide-text {
-    font-size: clamp(5px, 0.38vw, 9.5px);
-  }
+    font-size: clamp(13px, 3.6vw, 17px);
+    line-height: 1.35;
 
+    text-align: justify;
+    text-align-last: left;
+    hyphens: auto;
+  }
 }
