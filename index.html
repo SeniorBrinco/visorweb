@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Master Astronomía</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="viewer" aria-label="Visor de diapositivas astronómicas">
+        <button
+          class="lever"
+          id="lever"
+          type="button"
+          aria-label="Arrastrar la palanca hacia abajo para pasar una diapositiva"
+        >
+          <img src="./assets/ui/palanca.png" alt="" draggable="false" />
+        </button>
+
+        <div class="shell" id="shell">
+          <div class="slides-viewport" aria-live="polite">
+            <article class="slide slide-current" id="slideCurrent"></article>
+            <article class="slide slide-next" id="slideNext"></article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
