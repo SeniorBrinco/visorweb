@@ -1,7 +1,7 @@
 :root {
-  --bg: #222222;
+  --bg: #2c2e3d;
 
-  /* Un poco más grande y con más aire vertical que V2. */
+  /* DESKTOP */
   --stage-width: min(95vw, 1620px);
 
   --image-left: 29%;
@@ -9,7 +9,6 @@
   --image-width: 42%;
   --image-ratio: 586 / 531;
 
-  /* El texto queda bastante más ancho que la imagen. */
   --title-left: 19.5%;
   --title-top: 63.5%;
   --title-width: 61%;
@@ -21,6 +20,8 @@
   --lever-right: -11.8%;
   --lever-top: 19.2%;
   --lever-width: 16.8%;
+
+  --next-copy-opacity: 1;
 }
 
 * {
@@ -60,20 +61,17 @@ button {
   display: grid;
   place-items: center;
   padding: 2.4rem;
+  overflow: hidden;
 }
 
 .viewer {
   position: relative;
   width: var(--stage-width);
-
-  /* Más alto que el PNG original para sumar espacio vacío interno. */
   aspect-ratio: 1217 / 960;
   overflow: visible;
 }
 
-/* PALANCA
-   Está detrás del contenedor y rota alrededor de un anclaje imaginario
-   ubicado bastante más a la izquierda del propio PNG. */
+/* PALANCA DESKTOP */
 .lever {
   position: absolute;
   z-index: 1;
@@ -87,7 +85,6 @@ button {
   touch-action: none;
   user-select: none;
   will-change: transform;
-
   transform-origin: -72% 52%;
 }
 
@@ -101,8 +98,7 @@ button {
   pointer-events: none;
 }
 
-/* CONTENEDOR
-   El propio PNG genera el borde negro suavemente difuso. */
+/* CONTENEDOR DESKTOP */
 .shell {
   position: absolute;
   z-index: 2;
@@ -111,9 +107,6 @@ button {
   pointer-events: none;
 }
 
-/* La máscara interior evita que texto o imágenes del siguiente frame
-   puedan aparecer por fuera del cuerpo negro durante la rotación.
-   Dejamos un pequeño margen para que el blur del PNG quede visible. */
 .slides-viewport {
   position: absolute;
   inset: 0;
@@ -137,9 +130,6 @@ button {
   position: absolute;
   inset: 0;
   will-change: transform;
-
-  /* Radio muy grande = sensación de rueda/disco,
-     pero con menos inclinación extrema del texto. */
   transform-origin: -320% 50%;
 }
 
@@ -181,67 +171,133 @@ button {
   line-height: 1.4;
 }
 
+/* =========================================================
+   MOBILE
+   - View Master completo visible
+   - Sin scroll horizontal ni vertical
+   - Contenedor negro rotado 90°
+   - Imagen y texto siguen derechos
+   ========================================================= */
 @media (max-width: 680px) {
-
   :root {
     /*
-      En vertical necesitamos que el View Master sea más ancho
-      que la pantalla para no comprimir todo el contenido.
+      Ancho limitado por pantalla y por altura disponible.
+      Con la palanca incluida, entra completo dentro del viewport.
     */
-    --stage-width: 142vw;
+    --stage-width: min(84vw, 60dvh);
 
-    --image-left: 29%;
-    --image-top: 7.5%;
-    --image-width: 42%;
+    --image-left: 24%;
+    --image-top: 6.5%;
+    --image-width: 52%;
 
-    --title-left: 19.5%;
-    --title-top: 63.5%;
-    --title-width: 61%;
+    --title-left: 11%;
+    --title-top: 43.5%;
+    --title-width: 78%;
 
-    --body-left: 19.5%;
-    --body-top: 68.5%;
-    --body-width: 61%;
+    --body-left: 9%;
+    --body-top: 49%;
+    --body-width: 82%;
 
-    --lever-right: -11.8%;
-    --lever-top: 19.2%;
-    --lever-width: 16.8%;
+    --lever-right: -11.5%;
+    --lever-top: 18%;
+    --lever-width: 18%;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    position: fixed;
+    inset: 0;
   }
 
   .app {
+    width: 100vw;
+    height: 100dvh;
+    min-height: 0;
     padding: 0;
     overflow: hidden;
+    place-items: center;
   }
 
   .viewer {
     width: var(--stage-width);
     max-width: none;
-    flex-shrink: 0;
+    aspect-ratio: 892 / 1217;
+    overflow: visible;
   }
 
   /*
-    Evita que durante la rotación se vea el texto
-    de la próxima diapositiva por arriba del cuerpo.
+    Rotamos SOLO la gráfica del contenedor.
+    El contenido interno no gira.
   */
+  .shell {
+    background: none;
+  }
+
+  .shell::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 50%;
+
+    width: 136.435%;
+    aspect-ratio: 1217 / 892;
+
+    background: url("./assets/ui/contenedor-negro.png") center / 100% 100% no-repeat;
+
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center;
+    pointer-events: none;
+  }
+
   .slides-viewport {
+    z-index: 1;
+    inset: 0;
     overflow: hidden;
 
-    clip-path: inset(
-      5.2% 3.2% 5.2% 3.2%
-      round 7.5% / 6%
-    );
+    clip-path: inset(3.5% 4.5% 3.5% 4.5% round 7% / 5%);
+
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  /* Giro de rueda con radio grande para que no incline demasiado. */
+  .slide {
+    transform-origin: -430% 50%;
   }
 
   .slide-title {
-    font-size: clamp(18px, 5vw, 23px);
-    line-height: 1.1;
+    font-size: clamp(14px, 4.1vw, 18px);
+    line-height: 1.08;
   }
 
   .slide-text {
-    font-size: clamp(13px, 3.6vw, 17px);
-    line-height: 1.35;
+    font-size: clamp(8.8px, 2.35vw, 10.8px);
+    line-height: 1.2;
 
     text-align: justify;
     text-align-last: left;
     hyphens: auto;
+  }
+
+  /*
+    En mobile la próxima imagen puede empezar a entrar,
+    pero su texto no aparece hasta la segunda mitad del giro.
+  */
+  .slide-next .slide-title,
+  .slide-next .slide-text {
+    opacity: var(--next-copy-opacity, 0);
+  }
+
+  /* Palanca lateral con anclaje más a la izquierda. */
+  .lever {
+    transform-origin: -88% 52%;
   }
 }
