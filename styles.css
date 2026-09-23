@@ -195,7 +195,7 @@ button {
     --title-width: 78%;
 
     --body-left: 9%;
-    --body-top: 49%;
+    --body-top: 50.5%;
     --body-width: 82%;
 
     --lever-right: -11.5%;
@@ -274,8 +274,8 @@ button {
   }
 
   .slide-title {
-    font-size: clamp(14px, 4.1vw, 18px);
-    line-height: 1.08;
+    font-size: clamp(11px, 3.2vw, 15px);
+    line-height: 1.05;
   }
 
   .slide-text {
